@@ -5,7 +5,7 @@ import { input } from './input'
 const DIAL_SIZE = 100
 const DIAL_START = 50
 
-const run = flow(
+const main = flow(
   String.split('\n'),
   Array.reduce({ position: DIAL_START, totalZeroes: 0 }, (acc, line) => {
     const nextPosition =
@@ -36,6 +36,6 @@ const restOfStringAsNumber = (str: string): number =>
   parseInt(String.slice(1)(str))
 
 console.time('solution')
-const result = run(input)
+const result = main(input)
 console.timeEnd('solution')
 console.log(result)
