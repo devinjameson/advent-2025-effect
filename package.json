@@ -1,0 +1,17 @@
+{
+  "name": "2025",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.1",
+  "dependencies": {
+    "effect": "^3.19.8",
+    "prettier": "^3.7.3"
+  }
+}
