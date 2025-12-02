@@ -2,8 +2,8 @@ import { Array, flow, Match, String } from 'effect'
 
 import { input } from './input'
 
-const DIAL_START = 50
 const DIAL_SIZE = 100
+const DIAL_START = 50
 
 const run = flow(
   String.split('\n'),
