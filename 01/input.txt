@@ -1,4 +1,4 @@
-export const input = `R29
+R29
 R41
 R8
 R50
@@ -4229,4 +4229,4 @@ L42
 R29
 L45
 L34
-R14`
+R14
