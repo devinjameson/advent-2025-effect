@@ -13,7 +13,9 @@
   "dependencies": {
     "@effect/platform": "^0.93.6",
     "@effect/platform-node": "^0.103.0",
+    "@effect/vitest": "^0.27.0",
     "effect": "^3.19.8",
-    "prettier": "^3.7.3"
+    "prettier": "^3.7.3",
+    "vitest": "^4.0.15"
   }
 }

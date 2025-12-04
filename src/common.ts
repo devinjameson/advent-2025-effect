@@ -1,0 +1,8 @@
+import { FileSystem } from '@effect/platform/FileSystem'
+import { Effect, flow, String, Array } from 'effect'
+
+export const getLines = (fileName: string) =>
+  FileSystem.pipe(
+    Effect.flatMap((fs) => fs.readFileString(fileName)),
+    Effect.map(flow(String.split('\n'), Array.filter(String.isNonEmpty))),
+  )
