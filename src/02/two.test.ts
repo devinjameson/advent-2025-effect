@@ -7,6 +7,6 @@ import { two } from './two'
 it.effect('gives the right solution', () =>
   Effect.gen(function* () {
     const result = yield* two('./testInput.txt')
-    expect(result).toBe(6)
+    expect(result).toBe(4174379265)
   }).pipe(Effect.provide(NodeFileSystem.layer)),
 )

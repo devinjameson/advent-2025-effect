@@ -1,9 +1,9 @@
 import { NodeFileSystem, NodeRuntime } from '@effect/platform-node/index'
-import { Array, Console, Effect, pipe, String } from 'effect'
+import { Array, Console, Effect, Equal, pipe, String } from 'effect'
 
 import { getFileString } from '../common'
 
-export const one = (fileName: string) =>
+export const two = (fileName: string) =>
   Effect.gen(function* () {
     const input = yield* getFileString(fileName)
     const ranges = pipe(input, String.split(','), Array.map(String.split('-')))
@@ -18,26 +18,32 @@ export const one = (fileName: string) =>
       Array.map((int) => int.toString()),
     )
 
-    return Array.reduce(ints, 0, (total, int) => {
-      const hasOddDigits = String.length(int) % 2 !== 0
-      if (hasOddDigits) {
-        return total
-      }
-
-      const halfLength = String.length(int) / 2
-
-      const firstHalf = String.slice(0, halfLength)(int)
-      const secondHalf = String.slice(halfLength)(int)
-
-      if (firstHalf === secondHalf) {
-        return total + parseInt(int)
-      }
-
-      return total
-    })
+    return Array.reduce(Array.take(ints, 200), 0, (total, int) =>
+      isMatch(int) ? total + parseInt(int) : total,
+    )
   })
 
-one('input.txt').pipe(
+const isMatch = (int: string) =>
+  Array.reduce(
+    Array.range(1, String.length(int) / 2),
+    false,
+    (isMatch, chunkSize) => {
+      if (isMatch) {
+        return isMatch
+      }
+
+      const chunks = pipe(
+        int,
+        String.split(''),
+        Array.chunksOf(chunkSize),
+        Array.map(Array.join('')),
+      )
+
+      return Array.every(chunks, Equal.equals(Array.headNonEmpty(chunks)))
+    },
+  )
+
+two('input.txt').pipe(
   Console.withTime('time'),
   Effect.tap(Console.log),
   Effect.catchAll(Console.log),

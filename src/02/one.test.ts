@@ -6,7 +6,7 @@ import { one } from './one'
 
 it.effect('gives the right solution', () =>
   Effect.gen(function* () {
-    const result = yield* one('./oneTestInput.txt')
+    const result = yield* one('./testInput.txt')
     expect(result).toBe(1227775554)
   }).pipe(Effect.provide(NodeFileSystem.layer)),
 )
