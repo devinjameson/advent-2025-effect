@@ -2,9 +2,13 @@
   "name": "2025",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "day": "tsx src/run.ts",
+    "format": "prettier ./ --write",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -14,8 +18,13 @@
     "@effect/platform": "^0.93.6",
     "@effect/platform-node": "^0.103.0",
     "@effect/vitest": "^0.27.0",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "effect": "^3.19.8",
     "prettier": "^3.7.3",
     "vitest": "^4.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
   }
 }

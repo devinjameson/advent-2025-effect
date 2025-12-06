@@ -1,12 +1,12 @@
 import { expect, it } from '@effect/vitest'
-import { NodeFileSystem } from '@effect/platform-node/index'
 import { Effect } from 'effect'
 
-import { two } from './two'
+import { TestFileSystem } from '../testFileSystem.js'
+import { solution } from './two.js'
 
 it.effect('gives the right solution', () =>
   Effect.gen(function* () {
-    const result = yield* two('./testInput.txt')
+    const result = yield* solution
     expect(result).toBe(4174379265)
-  }).pipe(Effect.provide(NodeFileSystem.layer)),
+  }).pipe(Effect.provide(TestFileSystem(import.meta.url))),
 )

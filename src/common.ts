@@ -1,5 +1,5 @@
 import { FileSystem } from '@effect/platform/FileSystem'
-import { Effect, flow, String, Array } from 'effect'
+import { Array, Effect, String, flow } from 'effect'
 
 export const getLines = (fileName: string) =>
   FileSystem.pipe(

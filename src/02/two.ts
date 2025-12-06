@@ -1,27 +1,29 @@
-import { NodeFileSystem, NodeRuntime } from '@effect/platform-node/index'
-import { Array, Console, Effect, Equal, pipe, String } from 'effect'
+import { Array, Effect, Equal, String, pipe } from 'effect'
 
-import { getFileString } from '../common'
+import { getFileString } from '../common.js'
 
-export const two = (fileName: string) =>
-  Effect.gen(function* () {
-    const input = yield* getFileString(fileName)
-    const ranges = pipe(input, String.split(','), Array.map(String.split('-')))
-    const ints = pipe(
-      ranges,
-      Array.flatMap((range) =>
-        Array.range(
-          parseInt(Array.headNonEmpty(range)),
-          parseInt(Array.lastNonEmpty(range)),
-        ),
+export const solution = Effect.gen(function* () {
+  const input = yield* getFileString('input.txt')
+  const ranges = pipe(input, String.split(','), Array.map(String.split('-')))
+  const ints = pipe(
+    ranges,
+    Array.flatMap((range) =>
+      Array.range(
+        parseInt(Array.headNonEmpty(range)),
+        parseInt(Array.lastNonEmpty(range)),
       ),
-      Array.map((int) => int.toString()),
-    )
+    ),
+    Array.map((int) => int.toString()),
+  )
 
-    return Array.reduce(Array.take(ints, 200), 0, (total, int) =>
+  return pipe(
+    ints,
+    Array.filter((int) => String.length(int) > 1),
+    Array.reduce(0, (total, int) =>
       isMatch(int) ? total + parseInt(int) : total,
-    )
-  })
+    ),
+  )
+})
 
 const isMatch = (int: string) =>
   Array.reduce(
@@ -42,11 +44,3 @@ const isMatch = (int: string) =>
       return Array.every(chunks, Equal.equals(Array.headNonEmpty(chunks)))
     },
   )
-
-two('input.txt').pipe(
-  Console.withTime('time'),
-  Effect.tap(Console.log),
-  Effect.catchAll(Console.log),
-  Effect.provide(NodeFileSystem.layer),
-  NodeRuntime.runMain,
-)

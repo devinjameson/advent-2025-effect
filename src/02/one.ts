@@ -1,46 +1,36 @@
-import { NodeFileSystem, NodeRuntime } from '@effect/platform-node/index'
-import { Array, Console, Effect, pipe, String } from 'effect'
+import { Array, Effect, String, pipe } from 'effect'
 
-import { getFileString } from '../common'
+import { getFileString } from '../common.js'
 
-export const one = (fileName: string) =>
-  Effect.gen(function* () {
-    const input = yield* getFileString(fileName)
-    const ranges = pipe(input, String.split(','), Array.map(String.split('-')))
-    const ints = pipe(
-      ranges,
-      Array.flatMap((range) =>
-        Array.range(
-          parseInt(Array.headNonEmpty(range)),
-          parseInt(Array.lastNonEmpty(range)),
-        ),
+export const solution = Effect.gen(function* () {
+  const input = yield* getFileString('input.txt')
+  const ranges = pipe(input, String.split(','), Array.map(String.split('-')))
+  const ints = pipe(
+    ranges,
+    Array.flatMap((range) =>
+      Array.range(
+        parseInt(Array.headNonEmpty(range)),
+        parseInt(Array.lastNonEmpty(range)),
       ),
-      Array.map((int) => int.toString()),
-    )
+    ),
+    Array.map((int) => int.toString()),
+  )
 
-    return Array.reduce(ints, 0, (total, int) => {
-      const hasOddDigits = String.length(int) % 2 !== 0
-      if (hasOddDigits) {
-        return total
-      }
-
-      const halfLength = String.length(int) / 2
-
-      const firstHalf = String.slice(0, halfLength)(int)
-      const secondHalf = String.slice(halfLength)(int)
-
-      if (firstHalf === secondHalf) {
-        return total + parseInt(int)
-      }
-
+  return Array.reduce(ints, 0, (total, int) => {
+    const hasOddDigits = String.length(int) % 2 !== 0
+    if (hasOddDigits) {
       return total
-    })
-  })
+    }
 
-one('input.txt').pipe(
-  Console.withTime('time'),
-  Effect.tap(Console.log),
-  Effect.catchAll(Console.log),
-  Effect.provide(NodeFileSystem.layer),
-  NodeRuntime.runMain,
-)
+    const halfLength = String.length(int) / 2
+
+    const firstHalf = String.slice(0, halfLength)(int)
+    const secondHalf = String.slice(halfLength)(int)
+
+    if (firstHalf === secondHalf) {
+      return total + parseInt(int)
+    }
+
+    return total
+  })
+})
