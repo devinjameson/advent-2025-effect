@@ -4,7 +4,7 @@ import { Args, Command } from '@effect/cli'
 import { NodeContext, NodeRuntime } from '@effect/platform-node'
 import { FileSystem } from '@effect/platform/FileSystem'
 import { Path } from '@effect/platform/Path'
-import { Console, Effect } from 'effect'
+import { Console, Effect, String } from 'effect'
 
 const templateFiles = [
   'one.ts',
@@ -20,29 +20,29 @@ const createDayStructure = (day: string) =>
     const fs = yield* FileSystem
     const path = yield* Path
 
-    const dayNum = day.padStart(2, '0')
-    const srcDir = path.join('src', dayNum)
+    const dayNum = String.padStart(2, '0')(day)
+    const dayDir = path.join('src', dayNum)
     const templatesDir = path.join('scripts', 'templates')
 
-    const exists = yield* fs.exists(srcDir)
+    const exists = yield* fs.exists(dayDir)
     if (exists) {
       return yield* Effect.fail(
-        `Directory ${srcDir} already exists! Use a different day number.`,
+        `Directory ${dayDir} already exists! Use a different day number.`,
       )
     }
 
-    yield* fs.makeDirectory(srcDir, { recursive: true })
+    yield* fs.makeDirectory(dayDir, { recursive: true })
 
-    yield* Effect.forEach(templateFiles, (file) =>
+    yield* Effect.forEach(templateFiles, (filename) =>
       Effect.gen(function* () {
-        const templatePath = path.join(templatesDir, file)
-        const destinationPath = path.join(srcDir, file)
+        const templatePath = path.join(templatesDir, filename)
+        const destinationPath = path.join(dayDir, filename)
         const content = yield* fs.readFileString(templatePath)
         yield* fs.writeFileString(destinationPath, content)
       }),
     )
 
-    yield* Console.log(`Created ${srcDir}/ with all files`)
+    yield* Console.log(`Created ${dayDir}/ with all files`)
     yield* Console.log(`  - one.ts, one.test.ts`)
     yield* Console.log(`  - two.ts, two.test.ts`)
     yield* Console.log(`  - input.txt, testInput.txt`)
