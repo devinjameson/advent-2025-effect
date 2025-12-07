@@ -39,13 +39,13 @@ const joltageReducer =
   (lineAsDigits: Array.NonEmptyReadonlyArray<number>) =>
   (
     { joltage, startingIndex }: { joltage: string; startingIndex: number },
-    joltageDigit: number,
+    digitPosition: number,
   ) =>
     Effect.gen(function* () {
       const availableDigits = yield* pipe(
         lineAsDigits,
         Array.drop(startingIndex),
-        Array.dropRight(ON_BATTERIES - joltageDigit),
+        Array.dropRight(ON_BATTERIES - digitPosition),
         Option.liftPredicate(Array.isNonEmptyArray),
       )
 
