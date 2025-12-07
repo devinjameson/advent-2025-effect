@@ -7,14 +7,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "day": "tsx src/run.ts",
-    "format": "prettier ./ --write",
-    "typecheck": "tsc --noEmit"
+    "format": "prettier '**/*.ts' --write",
+    "typecheck": "tsc --noEmit",
+    "scaffold": "tsx scripts/scaffold.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.18.1",
   "dependencies": {
+    "@effect/cli": "^0.72.1",
     "@effect/platform": "^0.93.6",
     "@effect/platform-node": "^0.103.0",
     "@effect/vitest": "^0.27.0",
