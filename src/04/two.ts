@@ -15,8 +15,8 @@ import { getLines } from '../common.js'
 export const solution = Effect.gen(function* () {
   const lines = yield* getLines('input.txt')
 
+  const gridRef = yield* Ref.make(lines)
   const totalRemovedRollsRef = yield* Ref.make(0)
-  const gridRef = yield* Ref.make<Array<string>>(lines)
 
   while (true) {
     const grid = yield* Ref.get(gridRef)
@@ -31,12 +31,8 @@ export const solution = Effect.gen(function* () {
       break
     }
 
-    yield* Ref.getAndUpdate(
-      totalRemovedRollsRef,
-      Number.sum(accessibleRollsOnGrid),
-    )
-
     yield* Ref.update(gridRef, () => nextGrid)
+    yield* Ref.update(totalRemovedRollsRef, Number.sum(accessibleRollsOnGrid))
   }
 
   return yield* Ref.get(totalRemovedRollsRef)
