@@ -9,3 +9,10 @@ export const getLines = (filename: string) =>
 
 export const getFileString = (filename: string) =>
   FileSystem.pipe(Effect.flatMap((fs) => fs.readFileString(filename)))
+
+export const tap =
+  <T>(f: (v: T) => void) =>
+  (v: T) => {
+    f(v)
+    return v
+  }
