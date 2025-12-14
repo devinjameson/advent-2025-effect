@@ -92,6 +92,6 @@ export const solution = Effect.gen(function* () {
     ),
     ({ columnTotals }) => columnTotals,
     Array.getSomes,
-    Array.reduce(0, (sum, value) => sum + value),
+    Number.sumAll,
   )
 })
