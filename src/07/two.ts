@@ -65,34 +65,6 @@ export const solution = Effect.gen(function* () {
   return countPaths(graph, 0, cache)
 })
 
-const countPaths = (
-  graph: Graph.DirectedGraph<Coordinate, Coordinate[]>,
-  nodeIndex: number,
-  cache: Map<number, number>,
-): number => {
-  const cached = cache.get(nodeIndex)
-
-  if (Predicate.isNotUndefined(cached)) {
-    return cached
-  } else {
-    const outgoingNeighbors = Graph.neighbors(graph, nodeIndex)
-    const beamCount = nodeIndex === 0 ? 1 : 2
-    const exitingBeams = beamCount - Array.length(outgoingNeighbors)
-
-    const pathsCount =
-      exitingBeams +
-      Array.reduce(
-        outgoingNeighbors,
-        0,
-        (acc, neighbor) => acc + countPaths(graph, neighbor, cache),
-      )
-
-    cache.set(nodeIndex, pathsCount)
-
-    return pathsCount
-  }
-}
-
 const addEdgeToNextSplitter = (
   sourceCoordinate: Coordinate,
   coordinates: Array<Coordinate>,
@@ -151,3 +123,31 @@ const getNodeIndexOrCreateNode = (
       }),
     )
   }).pipe(Effect.runSync)
+
+const countPaths = (
+  graph: Graph.DirectedGraph<Coordinate, Coordinate[]>,
+  nodeIndex: number,
+  cache: Map<number, number>,
+): number => {
+  const cached = cache.get(nodeIndex)
+
+  if (Predicate.isNotUndefined(cached)) {
+    return cached
+  } else {
+    const outgoingNeighbors = Graph.neighbors(graph, nodeIndex)
+    const beamCount = nodeIndex === 0 ? 1 : 2
+    const exitingBeams = beamCount - Array.length(outgoingNeighbors)
+
+    const pathsCount =
+      exitingBeams +
+      Array.reduce(
+        outgoingNeighbors,
+        0,
+        (acc, neighbor) => acc + countPaths(graph, neighbor, cache),
+      )
+
+    cache.set(nodeIndex, pathsCount)
+
+    return pathsCount
+  }
+}
