@@ -6,6 +6,7 @@ import {
   HashMap,
   Number,
   Option,
+  Predicate,
   Ref,
   String,
   pipe,
@@ -26,114 +27,124 @@ export const solution = Effect.gen(function* () {
         String.split(''),
         Array.reduce<Array<Coordinate>, string>(
           [],
-          (coordinates, char, xIndex) =>
+          (lineCoordinates, char, xIndex) =>
             char === 'S' || char === '^'
-              ? [...coordinates, { xIndex, yIndex, char }]
-              : coordinates,
+              ? [...lineCoordinates, { xIndex, yIndex, char }]
+              : lineCoordinates,
         ),
       )
       return [...coordinates, ...lineCoordinates]
     },
   )
 
-  const nodeIndexByCoordinateRef = yield* Ref.make(
+  const coordinateToNodeIndexRef = yield* Ref.make(
     HashMap.empty<Coordinate, number>(),
   )
 
   const graph = Graph.directed<Coordinate, Array<Coordinate>>((mutable) => {
-    Array.forEach(coordinates, (sourceCoordinate) =>
-      Array.forEach([Number.decrement, Number.increment], (f) =>
-        addNodesAndEdges(
+    Array.forEach(coordinates, (sourceCoordinate) => {
+      const toTargetXs =
+        sourceCoordinate.char === 'S'
+          ? [Function.identity]
+          : [Number.decrement, Number.increment]
+
+      return Array.forEach(toTargetXs, (toTargetX) =>
+        addEdgeToNextSplitter(
           sourceCoordinate,
           coordinates,
           mutable,
-          nodeIndexByCoordinateRef,
-          f,
-        ).pipe(Effect.runSync),
-      ),
-    )
+          coordinateToNodeIndexRef,
+          toTargetX,
+        ),
+      )
+    })
   })
 
-  return countPaths(graph, 0)
+  const cache = new Map<number, number>()
+
+  return countPaths(graph, 0, cache)
 })
 
 const countPaths = (
   graph: Graph.DirectedGraph<Coordinate, Coordinate[]>,
   nodeIndex: number,
+  cache: Map<number, number>,
 ): number => {
-  const outgoingNeighbors = Graph.neighbors(graph, nodeIndex)
+  const cached = cache.get(nodeIndex)
 
-  if (Array.isEmptyArray(outgoingNeighbors)) {
-    return 1
+  if (Predicate.isNotUndefined(cached)) {
+    return cached
   } else {
-    return Array.reduce<number, number>(
-      outgoingNeighbors,
-      0,
-      (totalPaths, outgoingNeighbor) =>
-        totalPaths + countPaths(graph, outgoingNeighbor),
-    )
+    const outgoingNeighbors = Graph.neighbors(graph, nodeIndex)
+    const beamCount = nodeIndex === 0 ? 1 : 2
+    const exitingBeams = beamCount - Array.length(outgoingNeighbors)
+
+    const pathsCount =
+      exitingBeams +
+      Array.reduce(
+        outgoingNeighbors,
+        0,
+        (acc, neighbor) => acc + countPaths(graph, neighbor, cache),
+      )
+
+    cache.set(nodeIndex, pathsCount)
+
+    return pathsCount
   }
 }
 
-const addNodesAndEdges = (
+const addEdgeToNextSplitter = (
   sourceCoordinate: Coordinate,
   coordinates: Array<Coordinate>,
   mutable: Graph.MutableDirectedGraph<Coordinate, Coordinate[]>,
-  nodeIndexByCoordinateRef: Ref.Ref<HashMap.HashMap<Coordinate, number>>,
-  f: (a: number) => number,
+  coordinateToNodeIndexRef: Ref.Ref<HashMap.HashMap<Coordinate, number>>,
+  toTargetX: (a: number) => number,
 ) =>
-  Effect.gen(function* () {
-    const xIndexToCheck =
-      sourceCoordinate.char === 'S'
-        ? sourceCoordinate.xIndex
-        : f(sourceCoordinate.xIndex)
+  pipe(
+    coordinates,
+    Array.findFirst(
+      (targetCoordinate) =>
+        targetCoordinate.xIndex === toTargetX(sourceCoordinate.xIndex) &&
+        targetCoordinate.yIndex > sourceCoordinate.yIndex,
+    ),
+    Option.match({
+      onSome: (targetCoordinate) => {
+        const sourceNodeIndex = getNodeIndexOrCreateNode(
+          sourceCoordinate,
+          mutable,
+          coordinateToNodeIndexRef,
+        )
 
-    return pipe(
-      coordinates,
-      Array.findFirst(
-        (targetCoordinate) =>
-          targetCoordinate.xIndex === xIndexToCheck &&
-          targetCoordinate.yIndex > sourceCoordinate.yIndex,
-      ),
-      Option.match({
-        onSome: (targetCoordinate) => {
-          const sourceNodeIndex = getNodeIndexOrCreateNode(
-            sourceCoordinate,
-            mutable,
-            nodeIndexByCoordinateRef,
-          )
+        const targetNodeIndex = getNodeIndexOrCreateNode(
+          targetCoordinate,
+          mutable,
+          coordinateToNodeIndexRef,
+        )
 
-          const targetNodeIndex = getNodeIndexOrCreateNode(
-            targetCoordinate,
-            mutable,
-            nodeIndexByCoordinateRef,
-          )
-
-          Graph.addEdge(mutable, sourceNodeIndex, targetNodeIndex, [
-            sourceCoordinate,
-            targetCoordinate,
-          ])
-        },
-        onNone: Function.constVoid,
-      }),
-    )
-  })
+        Graph.addEdge(mutable, sourceNodeIndex, targetNodeIndex, [
+          sourceCoordinate,
+          targetCoordinate,
+        ])
+      },
+      onNone: Function.constVoid,
+    }),
+  )
 
 const getNodeIndexOrCreateNode = (
   coordinate: Coordinate,
   mutable: Graph.MutableDirectedGraph<Coordinate, Coordinate[]>,
-  nodeIndexByCoordinateRef: Ref.Ref<HashMap.HashMap<Coordinate, number>>,
+  coordinateToNodeIndexRef: Ref.Ref<HashMap.HashMap<Coordinate, number>>,
 ): number =>
   Effect.gen(function* () {
-    const nodeIndexByCoordinate = yield* Ref.get(nodeIndexByCoordinateRef)
+    const coordinateToNodeIndex = yield* Ref.get(coordinateToNodeIndexRef)
 
-    return yield* HashMap.get(nodeIndexByCoordinate, coordinate).pipe(
+    return yield* HashMap.get(coordinateToNodeIndex, coordinate).pipe(
       Option.match({
         onSome: Effect.succeed,
         onNone: () => {
           const nodeIndex = Graph.addNode(mutable, coordinate)
           return Ref.update(
-            nodeIndexByCoordinateRef,
+            coordinateToNodeIndexRef,
             HashMap.set(coordinate, nodeIndex),
           ).pipe(Effect.as(nodeIndex))
         },
