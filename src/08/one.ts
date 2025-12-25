@@ -101,7 +101,7 @@ export const solution = Effect.gen(function* () {
       Order.mapInput(Order.reverse(Order.number), Array.length),
     ),
     Array.take(3),
-    Array.map(flow(Array.dedupe, Array.length)),
+    Array.map(Array.length),
     Number.multiplyAll,
   )
 })
@@ -129,7 +129,6 @@ const determineCircuits = (
       graphWithOnlyShortestEdges,
       visitedNodes,
       startingNodeIndex.value,
-      [],
     ),
   ]
 
@@ -145,36 +144,27 @@ const determineRestOfCircuit = (
   graphWithOnlyShortestEdges: Graph.Graph<Position, number, 'undirected'>,
   visitedNodes: Array<number>,
   startingNodeIndex: number,
-  circuit: Array<number>,
 ): Array<number> => {
   const neighborIndices = Graph.neighbors(
     graphWithOnlyShortestEdges,
     startingNodeIndex,
   )
 
-  return Array.match(neighborIndices, {
-    onEmpty: () => circuit,
-    onNonEmpty: (neighborIndices) =>
-      Array.reduce<number, Array<number>>(
-        neighborIndices,
-        [],
-        (acc, neighborIndex) => {
-          if (Array.contains(visitedNodes, neighborIndex)) {
-            return [...acc, ...circuit]
-          } else {
-            visitedNodes.push(neighborIndex)
-            return [
-              neighborIndex,
-              ...determineRestOfCircuit(
-                graphWithOnlyShortestEdges,
-                visitedNodes,
-                neighborIndex,
-                acc,
-              ),
-            ]
-          }
-        },
+  return Array.flatMap(neighborIndices, (neighborIndex) => {
+    if (Array.contains(visitedNodes, neighborIndex)) {
+      return []
+    }
+
+    visitedNodes.push(neighborIndex)
+
+    return [
+      neighborIndex,
+      ...determineRestOfCircuit(
+        graphWithOnlyShortestEdges,
+        visitedNodes,
+        neighborIndex,
       ),
+    ]
   })
 }
 
