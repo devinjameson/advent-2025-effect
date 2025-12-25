@@ -87,7 +87,7 @@ export const solution = Effect.gen(function* () {
     graphWithOnlyShortestEdges,
     Graph.nodes,
     Graph.indices,
-    Array.dedupe,
+    Array.fromIterable,
   )
 
   const circuits = determineCircuits(
