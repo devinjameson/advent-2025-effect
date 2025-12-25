@@ -147,27 +147,26 @@ const determineRestOfCircuit = (
   visitedNodes: Set<number>,
   startingNodeIndex: number,
 ): Array<number> => {
-  const neighborIndices = Graph.neighbors(
-    graphWithOnlyShortestEdges,
-    startingNodeIndex,
-  )
+  const result: Array<number> = []
+  const stack: Array<number> = [startingNodeIndex]
 
-  return Array.flatMap(neighborIndices, (neighborIndex) => {
-    if (visitedNodes.has(neighborIndex)) {
-      return []
+  while (Array.isNonEmptyArray(stack)) {
+    const nodeIndex = stack.pop()!
+    const neighborIndices = Graph.neighbors(
+      graphWithOnlyShortestEdges,
+      nodeIndex,
+    )
+
+    for (const neighborIndex of neighborIndices) {
+      if (!visitedNodes.has(neighborIndex)) {
+        visitedNodes.add(neighborIndex)
+        stack.push(neighborIndex)
+        result.push(neighborIndex)
+      }
     }
+  }
 
-    visitedNodes.add(neighborIndex)
-
-    return [
-      neighborIndex,
-      ...determineRestOfCircuit(
-        graphWithOnlyShortestEdges,
-        visitedNodes,
-        neighborIndex,
-      ),
-    ]
-  })
+  return result
 }
 
 const positionToString = ({ x, y, z }: Position) =>
