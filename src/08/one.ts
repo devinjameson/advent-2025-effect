@@ -93,8 +93,6 @@ export const solution = Effect.gen(function* () {
   const circuits = determineCircuits(
     shortestEdgesNodeIndices,
     graphWithOnlyShortestEdges,
-    [],
-    new Set(),
   )
 
   return pipe(
@@ -111,35 +109,28 @@ export const solution = Effect.gen(function* () {
 const determineCircuits = (
   shortestEdgesNodeIndices: Array<NodeIndex>,
   graphWithOnlyShortestEdges: Graph.Graph<Position, number, 'undirected'>,
-  circuits: Array<Array<number>>,
-  visitedNodes: Set<number>,
 ): Array<Array<number>> => {
-  const univisitedNodeIndex = Array.findFirst(
-    shortestEdgesNodeIndices,
-    (nodeIndex) => !visitedNodes.has(nodeIndex),
-  )
+  const visitedNodes = new Set<number>()
+  const circuits: Array<Array<number>> = []
 
-  if (Option.isNone(univisitedNodeIndex)) {
-    return circuits
+  for (const nodeIndex of shortestEdgesNodeIndices) {
+    if (!visitedNodes.has(nodeIndex)) {
+      visitedNodes.add(nodeIndex)
+
+      const circuit = [
+        nodeIndex,
+        ...determineRestOfCircuit(
+          graphWithOnlyShortestEdges,
+          visitedNodes,
+          nodeIndex,
+        ),
+      ]
+
+      circuits.push(circuit)
+    }
   }
 
-  visitedNodes.add(univisitedNodeIndex.value)
-
-  const circuit = [
-    univisitedNodeIndex.value,
-    ...determineRestOfCircuit(
-      graphWithOnlyShortestEdges,
-      visitedNodes,
-      univisitedNodeIndex.value,
-    ),
-  ]
-
-  return determineCircuits(
-    shortestEdgesNodeIndices,
-    graphWithOnlyShortestEdges,
-    [...circuits, circuit],
-    visitedNodes,
-  )
+  return circuits
 }
 
 const determineRestOfCircuit = (
