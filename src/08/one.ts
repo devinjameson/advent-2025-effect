@@ -3,6 +3,7 @@ import {
   Config,
   Effect,
   Graph,
+  HashSet,
   Number,
   Option,
   Order,
@@ -53,7 +54,7 @@ export const solution = Effect.gen(function* () {
 
   const allEdgeIndices = pipe(graph, Graph.edges, Graph.indices)
 
-  const shortestEdgesIndices: Array<NodeIndex> = pipe(
+  const shortestEdgesIndices: HashSet.HashSet<NodeIndex> = pipe(
     graph,
     Graph.edges,
     Graph.entries,
@@ -65,11 +66,12 @@ export const solution = Effect.gen(function* () {
     ),
     Array.take(shortestConnectionsCount),
     Array.map(Tuple.getFirst),
+    HashSet.fromIterable,
   )
 
   const graphWithOnlyShortestEdges = Graph.mutate(graph, (mutable) => {
     Array.forEach(allEdgeIndices, (edgeIndex) => {
-      if (!Array.contains(shortestEdgesIndices, edgeIndex)) {
+      if (!HashSet.has(shortestEdgesIndices, edgeIndex)) {
         Graph.removeEdge(mutable, edgeIndex)
       }
     })
@@ -92,7 +94,7 @@ export const solution = Effect.gen(function* () {
     shortestEdgesNodeIndices,
     graphWithOnlyShortestEdges,
     [],
-    [],
+    new Set(),
   )
 
   return pipe(
@@ -110,25 +112,25 @@ const determineCircuits = (
   shortestEdgesNodeIndices: Array<NodeIndex>,
   graphWithOnlyShortestEdges: Graph.Graph<Position, number, 'undirected'>,
   circuits: Array<Array<number>>,
-  visitedNodes: Array<number>,
+  visitedNodes: Set<number>,
 ): Array<Array<number>> => {
-  const startingNodeIndex = Array.findFirst(
+  const univisitedNodeIndex = Array.findFirst(
     shortestEdgesNodeIndices,
-    (nodeIndex) => !Array.contains(visitedNodes, nodeIndex),
+    (nodeIndex) => !visitedNodes.has(nodeIndex),
   )
 
-  if (Option.isNone(startingNodeIndex)) {
+  if (Option.isNone(univisitedNodeIndex)) {
     return circuits
   }
 
-  visitedNodes.push(startingNodeIndex.value)
+  visitedNodes.add(univisitedNodeIndex.value)
 
   const circuit = [
-    startingNodeIndex.value,
+    univisitedNodeIndex.value,
     ...determineRestOfCircuit(
       graphWithOnlyShortestEdges,
       visitedNodes,
-      startingNodeIndex.value,
+      univisitedNodeIndex.value,
     ),
   ]
 
@@ -142,7 +144,7 @@ const determineCircuits = (
 
 const determineRestOfCircuit = (
   graphWithOnlyShortestEdges: Graph.Graph<Position, number, 'undirected'>,
-  visitedNodes: Array<number>,
+  visitedNodes: Set<number>,
   startingNodeIndex: number,
 ): Array<number> => {
   const neighborIndices = Graph.neighbors(
@@ -151,11 +153,11 @@ const determineRestOfCircuit = (
   )
 
   return Array.flatMap(neighborIndices, (neighborIndex) => {
-    if (Array.contains(visitedNodes, neighborIndex)) {
+    if (visitedNodes.has(neighborIndex)) {
       return []
     }
 
-    visitedNodes.push(neighborIndex)
+    visitedNodes.add(neighborIndex)
 
     return [
       neighborIndex,
