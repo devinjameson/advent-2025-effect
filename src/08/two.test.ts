@@ -7,6 +7,6 @@ import { solution } from './two.js'
 it.effect('gives the right solution', () =>
   Effect.gen(function* () {
     const result = yield* solution
-    expect(result).toBe(0)
+    expect(result).toBe(25272)
   }).pipe(Effect.provide(TestFileSystem(import.meta.url))),
 )
